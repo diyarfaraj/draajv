@@ -18,6 +18,7 @@ export default function HomePage() {
   const [calculatedDistance, setCalculatedDistance] = useState<number | null>(null)
   const [loadingDistance, setLoadingDistance] = useState(false)
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   // Store
   const { entries, addEntry } = useDriveStore()
@@ -26,16 +27,18 @@ export default function HomePage() {
 
   useEffect(() => {
     async function fetchDirections() {
-      if (!fromAddress || !toAddress) {
+      if (!fromAddress || !toAddress || !mapLoaded) {
         setDirections(null);
         return;
       }
       if (!(window.google && window.google.maps)) return;
       const directionsService = new window.google.maps.DirectionsService();
+
       directionsService.route(
         {
           origin: fromAddress,
-          destination: toAddress,
+          destination: roundtrip ? fromAddress : toAddress,
+          waypoints: roundtrip ? [{ location: toAddress, stopover: false }] : [],
           travelMode: window.google.maps.TravelMode.DRIVING,
         },
         (result, status) => {
@@ -48,7 +51,7 @@ export default function HomePage() {
       );
     }
     fetchDirections();
-  }, [fromAddress, toAddress]);
+  }, [fromAddress, toAddress, mapLoaded, roundtrip]);
 
   useEffect(() => {
     async function handleCalculateDistance() {
@@ -112,6 +115,7 @@ export default function HomePage() {
                   mapContainerStyle={{ width: "100%", height: "100%" }}
                   center={{ lat: 59.3293, lng: 18.0686 }} // Stockholm default
                   zoom={7}
+                  onLoad={() => setMapLoaded(true)}
                 >
                   {directions && <DirectionsRenderer directions={directions} />}
                 </GoogleMap>
