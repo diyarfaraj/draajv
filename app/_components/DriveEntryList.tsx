@@ -19,10 +19,17 @@ import { DriveEntryForm } from "./DriveEntryForm"
 import { useDriveStore } from "@/store/driveStore"
 import { useRouter } from "next/navigation"
 import { FaCarSide } from "react-icons/fa"
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
+import { UserProfileModal } from "./UserProfileModal"
+import { useUserProfileStore } from "@/store/userProfileStore"
+import { FiSettings } from "react-icons/fi"
 
 export function DriveEntryList() {
   const router = useRouter()
   const { entries, deleteEntry } = useDriveStore()
+  const [profileOpen, setProfileOpen] = useState(false)
+  const { profile } = useUserProfileStore()
 
   // Calculate totals
   const totalDistance = entries.reduce((sum, e) => sum + (e.distance || 0), 0)
@@ -32,11 +39,16 @@ export function DriveEntryList() {
     <div className="mt-8">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">Alla körningar</h3>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <Button size="sm" variant="outline" aria-label="Profil" onClick={() => setProfileOpen(true)}>
+            <FiSettings className="w-5 h-5" />
+          </Button>
           <Button onClick={() => router.push("/new")}>Ny körning</Button>
           <Button variant="outline" onClick={handleExportCsv}>Exportera CSV</Button>
+          <Button variant="outline" onClick={handleExportPdf}>Exportera PDF</Button>
         </div>
       </div>
+      <UserProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
       {entries.length === 0 ? (
         <p className="text-muted-foreground">Inga körningar sparade än.</p>
       ) : (
@@ -113,4 +125,76 @@ function handleExportCsv() {
   a.click()
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
+}
+
+function handleExportPdf() {
+  const { entries } = useDriveStore.getState()
+  const { profile } = useUserProfileStore.getState()
+  const doc = new jsPDF({ orientation: "landscape" })
+
+  // --- Custom Header ---
+  doc.setFontSize(24)
+  doc.setFont('helvetica', 'bold')
+  doc.text("Utläggsrapport", 14, 20)
+  doc.setFontSize(12)
+  doc.setFont('helvetica', 'normal')
+  doc.text(profile.company || "", 14, 28)
+
+  // User info
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'normal')
+  doc.text(profile.name || "", 14, 44)
+  doc.setFontSize(11)
+  doc.text(profile.email || "", 14, 52)
+  doc.text(`Anställningsnummer: ${profile.employeeId || ""}`, 14, 60)
+  doc.setFontSize(10)
+  doc.text(`Avdelning: ${profile.department || ""}`, 14, 68)
+  doc.text(`Utbetalningskonto: ${profile.account || ""}`, 14, 76)
+
+  // Right column: total, date, purpose, ref
+  const totalAmount = entries.reduce((sum, e) => sum + (e.distance || 0) * 2.5, 0)
+  doc.setFontSize(18)
+  doc.setFont('helvetica', 'bold')
+  doc.text(`Totalt belopp: ${totalAmount.toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK`, 150, 44)
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'normal')
+  const today = new Date().toISOString().slice(0, 10)
+  doc.text(`Datum: ${today}`, 150, 52)
+  doc.text(`Syfte / Beskrivning: ${profile.purpose || ""}`, 150, 60)
+  doc.text(`Ref: ${profile.ref || ""}`, 150, 68)
+
+  // --- Table ---
+  const tableData = entries.map(e => [
+    e.date,
+    `${e.fromAddress || e.location} - ${e.toAddress || e.location}${e.roundtrip ? ' (tur och retur)' : ''}`,
+    e.purpose,
+    `${e.distance} km`,
+    `${(e.distance * 2.5).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK`
+  ])
+  autoTable(doc, {
+    head: [["Datum", "Resmål", "Beskrivning", "Antal", "Belopp"]],
+    body: tableData,
+    startY: 90,
+    styles: { font: "helvetica", fontSize: 10 },
+    headStyles: { fillColor: [240,240,240], textColor: 30, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [250,250,250] },
+    margin: { left: 14, right: 14 },
+    didDrawPage: (data) => {
+      // Add summary row at the end
+      if (data.pageNumber === (doc.internal as any).getNumberOfPages()) {
+        const totalDistance = entries.reduce((sum, e) => sum + (e.distance || 0), 0)
+        const totalAmount = totalDistance * 2.5
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        const finalY = (doc as any).lastAutoTable?.finalY ?? (data.cursor ? data.cursor.y + 10 : 40)
+        doc.text(
+          `Totalt: ${totalDistance} km    ${totalAmount.toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK`,
+          14,
+          finalY + 10
+        )
+        doc.setFont('helvetica', 'normal')
+      }
+    }
+  })
+  doc.save(`korjournal_${today}.pdf`)
 } 
