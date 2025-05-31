@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from "react"
 import { useDriveStore } from "@/store/driveStore"
 import { GoogleAddressAutocomplete } from "./_components/GoogleAddressAutocomplete"
-import { LoadScript } from "@react-google-maps/api"
+import { LoadScript, GoogleMap, DirectionsRenderer } from "@react-google-maps/api"
+import { getDistanceInKm } from "@/lib/getDistance"
 
 export default function HomePage() {
-  // Form state
+  // All hooks at the top
   const [date, setDate] = useState("")
   const [fromAddress, setFromAddress] = useState("")
   const [toAddress, setToAddress] = useState("")
@@ -14,24 +15,67 @@ export default function HomePage() {
   const [purpose, setPurpose] = useState("")
   const [vehicleType, setVehicleType] = useState("Privat bil")
   const [hasMounted, setHasMounted] = useState(false)
+  const [calculatedDistance, setCalculatedDistance] = useState<number | null>(null)
+  const [loadingDistance, setLoadingDistance] = useState(false)
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
 
   // Store
   const { entries, addEntry } = useDriveStore()
 
   useEffect(() => { setHasMounted(true) }, [])
 
+  useEffect(() => {
+    async function fetchDirections() {
+      if (!fromAddress || !toAddress) {
+        setDirections(null);
+        return;
+      }
+      if (!(window.google && window.google.maps)) return;
+      const directionsService = new window.google.maps.DirectionsService();
+      directionsService.route(
+        {
+          origin: fromAddress,
+          destination: toAddress,
+          travelMode: window.google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === "OK" && result) {
+            setDirections(result);
+          } else {
+            setDirections(null);
+          }
+        }
+      );
+    }
+    fetchDirections();
+  }, [fromAddress, toAddress]);
+
+  useEffect(() => {
+    async function handleCalculateDistance() {
+      if (!fromAddress || !toAddress) return;
+      setLoadingDistance(true);
+      const dist = await getDistanceInKm(
+        fromAddress,
+        toAddress
+      );
+      setCalculatedDistance(dist);
+      setLoadingDistance(false);
+    }
+    if (fromAddress && toAddress) {
+      handleCalculateDistance();
+    } else {
+      setCalculatedDistance(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fromAddress, toAddress]);
+
   if (!hasMounted) return null
 
-  // Dummy distance calculation (replace with real API if needed)
-  function calculateDistance(from: string, to: string) {
-    if (!from || !to) return 0
-    // Här kan du koppla in Google Maps API eller liknande
-    // Just nu returneras alltid 56 km som exempel
-    return 56
-  }
-
-  const baseDistance = calculateDistance(fromAddress, toAddress)
-  const distance = roundtrip ? baseDistance * 2 : baseDistance
+  const distance = calculatedDistance
+    ? roundtrip
+      ? Math.round(calculatedDistance * 2 * 10) / 10
+      : Math.round(calculatedDistance * 10) / 10
+    : 0;
 
   // Spara körning
   function handleSubmit(e: React.FormEvent) {
@@ -64,16 +108,13 @@ export default function HomePage() {
             <section className="w-full h-[350px] md:h-[600px] flex flex-col">
               <h2 className="text-2xl font-semibold mb-4">Karta</h2>
               <div className="flex-1 border-2 border-dashed rounded-lg overflow-hidden">
-                <iframe
-                  title="Karta"
-                  src="https://www.google.com/maps/embed?pb=!1m28!1m12!1m3!1d106057.0193950292!2d11.818626!3d57.70887!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m13!3e0!4m5!1s0x464ff369c2b2e6e1%3A0x4019078290cfc70!2zR8O2dGVib3Jn!3m2!1d57.70887!2d11.97456!4m5!1s0x4650c1e2b2e6e1%3A0x4019078290cfc70!2zU8O2ZGVybGp1bmdzZ2F0YW4gOCwgR8O2dGVib3Jn!3m2!1d57.70887!2d11.97456!5e0!3m2!1ssv!2sse!4v1717171717171!5m2!1ssv!2sse"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
+                <GoogleMap
+                  mapContainerStyle={{ width: "100%", height: "100%" }}
+                  center={{ lat: 59.3293, lng: 18.0686 }} // Stockholm default
+                  zoom={7}
+                >
+                  {directions && <DirectionsRenderer directions={directions} />}
+                </GoogleMap>
               </div>
             </section>
 
@@ -113,7 +154,13 @@ export default function HomePage() {
                 </div>
                 <div>
                   <label className="block text-xs mb-1">Sträcka (km)</label>
-                  <input type="number" className="form-input w-full text-center" value={distance} readOnly />
+                  <input
+                    type="number"
+                    className="form-input w-full text-center"
+                    value={loadingDistance ? "" : distance}
+                    readOnly
+                    placeholder={loadingDistance ? "Beräknar..." : ""}
+                  />
                 </div>
                 <div>
                   <label htmlFor="vehicleType" className="block text-sm font-medium mb-1">Fordonstyp</label>
