@@ -22,6 +22,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="sv" suppressHydrationWarning>
+      <head>
+        <meta name="description" content="Gratis körjournal för milersättning och bokföring. Open source, modern och enkel att använda." />
+        <meta name="keywords" content="gratis körjournal, milersättning, opensource, körjournal, milersättning, bokföring, skatteverket, export, PDF, CSV" />
+      </head>
       <body className={inter.className}>{children}</body>
     </html>
   );

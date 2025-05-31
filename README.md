@@ -1,5 +1,10 @@
 # Körjournal
 
+<!--
+Meta description: Gratis körjournal för milersättning och bokföring. Open source, modern och enkel att använda.
+Keywords: gratis körjournal, milersättning, opensource, körjournal, milersättning, bokföring, skatteverket, export, PDF, CSV
+-->
+
 ![MIT License](https://img.shields.io/badge/license-MIT-green)
 
 En modern svensk körjournal för milersättning, export och bokföring. Byggd med Next.js, React, Tailwind, Zustand, Google Maps och PWA-stöd.
