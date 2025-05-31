@@ -14,7 +14,6 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">Körjournal</h1>
-            <Button onClick={() => router.push("/new")}>Ny körning</Button>
           </div>
           <DriveEntryList />
         </div>

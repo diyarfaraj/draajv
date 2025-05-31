@@ -23,13 +23,18 @@ import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import { UserProfileModal } from "./UserProfileModal"
 import { useUserProfileStore } from "@/store/userProfileStore"
-import { FiSettings } from "react-icons/fi"
+import { FiSettings, FiEdit2, FiCopy, FiTrash2 } from "react-icons/fi"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/app/_components/ui/dialog"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/_components/ui/tooltip"
 
 export function DriveEntryList() {
   const router = useRouter()
-  const { entries, deleteEntry } = useDriveStore()
+  const { entries, deleteEntry, addEntry } = useDriveStore()
   const [profileOpen, setProfileOpen] = useState(false)
   const { profile } = useUserProfileStore()
+  const [duplicateOpen, setDuplicateOpen] = useState(false)
+  const [duplicateDate, setDuplicateDate] = useState("")
+  const [duplicateSource, setDuplicateSource] = useState<DriveEntry | null>(null)
 
   // Calculate totals
   const totalDistance = entries.reduce((sum, e) => sum + (e.distance || 0), 0)
@@ -87,12 +92,32 @@ export function DriveEntryList() {
                   <td className="px-2 py-2 md:px-3 text-right align-top text-xs md:text-sm">{(entry.distance * 2.5).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK</td>
                   <td className="px-2 py-2 md:px-3 text-right align-top">
                     <div className="flex flex-col md:flex-row gap-2 justify-end">
-                      <Button size="sm" variant="outline" onClick={() => router.push(`/new/${entry.id}`)} aria-label="Redigera körning">
-                        Redigera
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => deleteEntry(entry.id)} aria-label="Ta bort körning">
-                        Ta bort
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button size="sm" variant="outline" onClick={() => router.push(`/new/${entry.id}`)} aria-label="Redigera körning">
+                              <FiEdit2 className="w-5 h-5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Redigera</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button size="sm" variant="outline" onClick={() => { setDuplicateSource(entry); setDuplicateDate(""); setDuplicateOpen(true) }} aria-label="Duplicera körning">
+                              <FiCopy className="w-5 h-5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Duplicera</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button size="sm" variant="destructive" onClick={() => deleteEntry(entry.id)} aria-label="Ta bort körning" className="min-w-[44px]">
+                              <FiTrash2 className="w-5 h-5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Ta bort</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </td>
                 </tr>
@@ -109,6 +134,35 @@ export function DriveEntryList() {
           </table>
         </div>
       )}
+      <Dialog open={duplicateOpen} onOpenChange={setDuplicateOpen}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>Välj nytt datum</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={e => {
+            e.preventDefault()
+            if (!duplicateSource || !duplicateDate) return
+            const { id, createdAt, ...rest } = duplicateSource
+            addEntry({
+              ...rest,
+              date: duplicateDate,
+            })
+            setDuplicateOpen(false)
+          }} className="space-y-4">
+            <input
+              type="date"
+              className="form-input w-full"
+              value={duplicateDate}
+              onChange={e => setDuplicateDate(e.target.value)}
+              required
+            />
+            <DialogFooter className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setDuplicateOpen(false)}>Avbryt</Button>
+              <Button type="submit">Duplicera</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
