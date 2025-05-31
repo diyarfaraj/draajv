@@ -29,9 +29,10 @@ const driveStoreCreator: StateCreator<DriveState, [], [], DriveState> = (set, ge
   addEntry: (entryData: DriveFormValues) => {
     const newEntry: DriveEntry = {
       ...entryData,
-      id: crypto.randomUUID ? crypto.randomUUID() : uuidv4(), // Use crypto.randomUUID if available
+      id: crypto.randomUUID ? crypto.randomUUID() : uuidv4(),
       distance: calculateDistance(entryData.startOdometer, entryData.endOdometer),
       createdAt: new Date().toISOString(),
+      roundtrip: entryData.roundtrip,
     };
     set((state: DriveState) => ({
       entries: [newEntry, ...state.entries].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
@@ -41,7 +42,7 @@ const driveStoreCreator: StateCreator<DriveState, [], [], DriveState> = (set, ge
     set((state: DriveState) => ({
       entries: state.entries.map((entry: DriveEntry) =>
         entry.id === id
-          ? { ...entry, ...entryData, distance: calculateDistance(entryData.startOdometer, entryData.endOdometer) }
+          ? { ...entry, ...entryData, distance: calculateDistance(entryData.startOdometer, entryData.endOdometer), roundtrip: entryData.roundtrip }
           : entry
       ).sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     }));
@@ -52,7 +53,16 @@ const driveStoreCreator: StateCreator<DriveState, [], [], DriveState> = (set, ge
     }));
   },
   getEntryById: (id: string) => {
-    return get().entries.find((entry: DriveEntry) => entry.id === id);
+    const entry = get().entries.find((entry: DriveEntry) => entry.id === id);
+    if (!entry) return undefined;
+    // Migration: if fromAddress/toAddress missing, use location
+    const migrated = {
+      ...entry,
+      fromAddress: entry.fromAddress || entry.location || "",
+      toAddress: entry.toAddress || entry.location || "",
+      roundtrip: typeof entry.roundtrip === "boolean" ? entry.roundtrip : false,
+    };
+    return migrated;
   }
 });
 
