@@ -16,6 +16,7 @@ const baseDriveEntrySchema = z.object({
     .finite(),
   purpose: z.string().min(1, { message: "Syfte är obligatoriskt." }).max(100, "Syfte får max vara 100 tecken."),
   location: z.string().min(1, { message: "Ort är obligatoriskt." }).max(100, "Ort får max vara 100 tecken."),
+  vehicleType: z.string().min(1, { message: "Fordonstyp är obligatoriskt." }).max(100, "Fordonstyp får max vara 100 tecken."),
 });
 
 export const driveEntrySchema = baseDriveEntrySchema.refine((data: z.infer<typeof baseDriveEntrySchema>) => {

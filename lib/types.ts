@@ -1,13 +1,9 @@
 export interface DriveEntry {
   id: string; // UUID
   date: string; // ISO string (YYYY-MM-DD)
-  startTime: string; // HH:mm
-  endTime: string; // HH:mm
-  startOdometer: number;
-  endOdometer: number;
   distance: number; // Automatically calculated
   purpose: string;
-  location: string;
+  vehicleType: string;
   createdAt: string; // ISO string for timestamp
 }
 

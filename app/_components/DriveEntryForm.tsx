@@ -22,12 +22,9 @@ export function DriveEntryForm({ onSubmit, defaultValues, submitLabel = "Spara" 
     resolver: zodResolver(driveEntrySchema),
     defaultValues: {
       date: defaultValues?.date || getCurrentDateISO(),
-      startTime: defaultValues?.startTime || getCurrentTime(),
-      endTime: defaultValues?.endTime || getCurrentTime(),
-      startOdometer: defaultValues?.startOdometer || 0,
-      endOdometer: defaultValues?.endOdometer || 0,
       purpose: defaultValues?.purpose || "",
       location: defaultValues?.location || "",
+      vehicleType: defaultValues?.vehicleType || "",
     },
   })
 
