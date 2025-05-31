@@ -1,77 +1,35 @@
 # Körjournal
 
-En modern, responsiv körjournal för den svenska marknaden. Byggd med Next.js 14, TypeScript, Tailwind CSS och PWA-stöd.
+![MIT License](https://img.shields.io/badge/license-MIT-green)
 
-## Funktioner
+En modern svensk körjournal för milersättning, export och bokföring. Byggd med Next.js, React, Tailwind, Zustand, Google Maps och PWA-stöd.
 
-- Registrera körningar med datum, tid, mätarställning, syfte och ort
-- Automatisk beräkning av körsträcka
-- Redigera och radera körningar
-- Exportera till CSV enligt Skatteverkets specifikation
-- Mörkt/ljust tema
-- Offlinestöd via PWA
-- Responsiv design för alla enheter
+## 🚗 Funktioner
+- Adressökning och rutt med Google Maps
+- Automatisk distansberäkning (tur/retur)
+- Snygg, mobilanpassad och PWA-ready
+- Export till PDF och CSV (Skatteverkets format)
+- Profil för användare och företag
+- Summering per månad/år
+- Dark/light mode
+- Open source (MIT)
 
-## Teknisk stack
+## 📺 Demo
+[Se live-demo på Vercel](https://draajv.vercel.app)
 
-- Next.js 14 (App Router)
-- TypeScript
-- Tailwind CSS
-- shadcn/ui-komponenter
-- Zustand för state management
-- localForage för persistent lagring
-- next-pwa för PWA-stöd
-
-## Installation
-
-1. Klona repot:
-   ```bash
-   git clone https://github.com/yourusername/korjournal.git
-   cd korjournal
-   ```
-
-2. Installera beroenden:
-   ```bash
-   pnpm install
-   ```
-
-3. Starta utvecklingsservern:
-   ```bash
-   pnpm dev
-   ```
-
-4. Öppna [http://localhost:3000](http://localhost:3000) i din webbläsare.
-
-## Byggning
-
-För att bygga appen för produktion:
-
-```bash
-pnpm build
+## ⚡️ Kom igång
+```sh
+pnpm install
+cp .env.example .env.local
+# Fyll i dina API-nycklar i .env.local
+pnpm dev
 ```
 
-Starta produktionsservern:
+## 🔑 Miljövariabler
+Se `.env.example` för vilka variabler som krävs (t.ex. Google Maps API).
 
-```bash
-pnpm start
-```
+## 🛠️ Bidra
+Pull requests och issues välkomnas! Se [CONTRIBUTING.md](CONTRIBUTING.md) för riktlinjer.
 
-## Återställning av data
-
-För att återställa all lagrad data, öppna webbläsarens utvecklarverktyg (F12) och kör:
-
-```javascript
-localForage.clear()
-```
-
-## Tester
-
-Kör tester med:
-
-```bash
-pnpm test
-```
-
-## Licens
-
-MIT 
+## 📄 Licens
+MIT © 2024 Diyar Faraj 
