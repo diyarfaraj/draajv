@@ -36,7 +36,7 @@ export function generateCsv(entries: DriveEntry[]): string {
       e.endOdometer,
       e.distance,
       e.purpose.replace(/;/g, ","), // undvik semikolon i fält
-      e.location.replace(/;/g, ","),
+      (e.location ?? "").replace(/;/g, ","),
     ].join(";")
   )
   return [header, ...rows].join("\n")
