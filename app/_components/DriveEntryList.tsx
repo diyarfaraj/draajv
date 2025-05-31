@@ -18,10 +18,15 @@ import {
 import { DriveEntryForm } from "./DriveEntryForm"
 import { useDriveStore } from "@/store/driveStore"
 import { useRouter } from "next/navigation"
+import { FaCarSide } from "react-icons/fa"
 
 export function DriveEntryList() {
   const router = useRouter()
   const { entries, deleteEntry } = useDriveStore()
+
+  // Calculate totals
+  const totalDistance = entries.reduce((sum, e) => sum + (e.distance || 0), 0)
+  const totalAmount = totalDistance * 2.5
 
   return (
     <div className="mt-8">
@@ -35,57 +40,62 @@ export function DriveEntryList() {
       {entries.length === 0 ? (
         <p className="text-muted-foreground">Inga körningar sparade än.</p>
       ) : (
-        <ul className="divide-y divide-border">
-          {entries.map((entry) => (
-            <li
-              key={entry.id}
-              className="py-2 flex flex-col md:flex-row md:items-center md:justify-between gap-2"
-            >
-              <div>
-                <span className="font-medium">{entry.date}</span>
-                <span className="ml-2 text-xs text-muted-foreground">
-                  {entry.vehicleType}
-                </span>
-                <span className="ml-2 text-xs text-muted-foreground">
-                  {entry.purpose}
-                </span>
-                <span className="ml-2 text-xs text-muted-foreground">
-                  {entry.fromAddress || entry.location} → {entry.toAddress || entry.location}
-                  {entry.roundtrip && (
-                    <span className="inline-flex items-center ml-1">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className="w-4 h-4 text-blue-500 mr-0.5"
-                        aria-label="Tur och retur"
-                      >
-                        <path fillRule="evenodd" d="M4.75 4.75a.75.75 0 0 1 .75-.75h6.19l-1.22-1.22a.75.75 0 1 1 1.06-1.06l2.5 2.5a.75.75 0 0 1 0 1.06l-2.5 2.5a.75.75 0 1 1-1.06-1.06l1.22-1.22H5.5a.75.75 0 0 1-.75-.75zm10.5 10.5a.75.75 0 0 1-.75.75h-6.19l1.22 1.22a.75.75 0 1 1-1.06 1.06l-2.5-2.5a.75.75 0 0 1 0-1.06l2.5-2.5a.75.75 0 1 1 1.06 1.06l-1.22 1.22h6.19a.75.75 0 0 1 .75.75z" clipRule="evenodd" />
-                      </svg>
-                      (tur och retur)
-                    </span>
-                  )}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => router.push(`/new/${entry.id}`)}
+        <div className="overflow-x-auto rounded-lg border border-border bg-background">
+          <table className="min-w-full text-sm">
+            <thead className="bg-muted">
+              <tr>
+                <th className="px-2 py-2 md:px-3 font-semibold text-left whitespace-nowrap">Datum</th>
+                <th className="px-2 py-2 md:px-3 font-semibold text-left whitespace-nowrap">Resmål</th>
+                <th className="px-2 py-2 md:px-3 font-semibold text-left whitespace-nowrap">Beskrivning</th>
+                <th className="px-2 py-2 md:px-3 font-semibold text-right whitespace-nowrap">Antal</th>
+                <th className="px-2 py-2 md:px-3 font-semibold text-right whitespace-nowrap">Belopp</th>
+                <th className="px-2 py-2 md:px-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map((entry, idx) => (
+                <tr
+                  key={entry.id}
+                  className={
+                    `border-b last:border-0 hover:bg-accent/40 transition ${idx % 2 === 1 ? 'even:bg-muted/40' : ''}`
+                  }
                 >
-                  Redigera
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => deleteEntry(entry.id)}
-                >
-                  Ta bort
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
+                  <td className="px-2 py-2 md:px-3 whitespace-nowrap flex items-center gap-2">
+                    <FaCarSide className="text-blue-500 w-5 h-5 shrink-0" aria-label="Bil" />
+                    <span className="text-xs md:text-sm">{entry.date}</span>
+                  </td>
+                  <td className="px-2 py-2 md:px-3 whitespace-pre-line align-top">
+                    <span className="block text-xs md:text-sm font-medium">{entry.fromAddress || entry.location} - {entry.toAddress || entry.location}</span>
+                    {entry.roundtrip && (
+                      <div className="italic text-xs text-blue-600">Tur och retur</div>
+                    )}
+                  </td>
+                  <td className="px-2 py-2 md:px-3 align-top text-xs md:text-sm">{entry.purpose}</td>
+                  <td className="px-2 py-2 md:px-3 text-right align-top text-xs md:text-sm">{entry.distance} km</td>
+                  <td className="px-2 py-2 md:px-3 text-right align-top text-xs md:text-sm">{(entry.distance * 2.5).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK</td>
+                  <td className="px-2 py-2 md:px-3 text-right align-top">
+                    <div className="flex flex-col md:flex-row gap-2 justify-end">
+                      <Button size="sm" variant="outline" onClick={() => router.push(`/new/${entry.id}`)} aria-label="Redigera körning">
+                        Redigera
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => deleteEntry(entry.id)} aria-label="Ta bort körning">
+                        Ta bort
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="bg-muted/60 font-semibold">
+                <td className="px-2 py-2 md:px-3" colSpan={3}>Totalt</td>
+                <td className="px-2 py-2 md:px-3 text-right">{totalDistance} km</td>
+                <td className="px-2 py-2 md:px-3 text-right">{totalAmount.toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       )}
     </div>
   )
