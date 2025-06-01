@@ -9,7 +9,7 @@ Keywords: gratis körjournal, milersättning, opensource, körjournal, milersät
 
 En modern svensk körjournal för milersättning, export och bokföring. Byggd med Next.js, React, Tailwind, Zustand, Google Maps och PWA-stöd.
 
-För persistence används endast chromes inbyggd localStorage. Databasimplementering kan tillkomma senare. 
+För persistence används endast chromes egna inbyggda localStorage API. Databasimplementering kan tillkomma senare. 
 
 ## 🚗 Funktioner
 - Adressökning och rutt med Google Maps
