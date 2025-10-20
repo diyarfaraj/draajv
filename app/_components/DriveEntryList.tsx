@@ -40,6 +40,16 @@ export function DriveEntryList() {
   const totalDistance = Math.round(entries.reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
   const totalAmount = totalDistance * 2.5
 
+  // Calculate category-based totals
+  const businessDistance = Math.round(entries.filter(e => e.category === "Tjänsteresa").reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
+  const businessAmount = Math.round(businessDistance * 2.5 * 100) / 100
+  const otherDistance = Math.round(entries.filter(e => e.category === "Övrigt").reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
+  const otherAmount = Math.round(otherDistance * 2.5 * 100) / 100
+
+  // Calculate odometer range from entries
+  const minOdometer = entries.length > 0 ? Math.min(...entries.map(e => e.startOdometer)) : 0
+  const maxOdometer = entries.length > 0 ? Math.max(...entries.map(e => e.endOdometer)) : 0
+
   return (
     <div className="mt-8">
       <div className="flex justify-between items-center mb-4">
@@ -144,6 +154,36 @@ export function DriveEntryList() {
           </table>
         </div>
       )}
+
+      {/* Category and Odometer Summary */}
+      {entries.length > 0 && (
+        <div className="mt-4 p-4 bg-muted/30 rounded-lg border border-border">
+          <h4 className="text-sm font-semibold mb-3">Sammanfattning</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <div className="flex justify-between py-1">
+                <span className="text-muted-foreground">Tjänsteresor:</span>
+                <span className="font-medium">{businessDistance} km ({businessAmount.toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK)</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-muted-foreground">Övrigt:</span>
+                <span className="font-medium">{otherDistance} km ({otherAmount.toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK)</span>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between py-1">
+                <span className="text-muted-foreground">Mätarställning från:</span>
+                <span className="font-medium">{minOdometer.toLocaleString("sv-SE")} km</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-muted-foreground">Mätarställning till:</span>
+                <span className="font-medium">{maxOdometer.toLocaleString("sv-SE")} km</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Dialog open={duplicateOpen} onOpenChange={setDuplicateOpen}>
         <DialogContent className="max-w-xs">
           <DialogHeader>
@@ -245,19 +285,46 @@ function handleExportPdf() {
     alternateRowStyles: { fillColor: [250,250,250] },
     margin: { left: 14, right: 14 },
     didDrawPage: (data) => {
-      // Add summary row at the end
+      // Add summary at the end
       if (data.pageNumber === (doc.internal as any).getNumberOfPages()) {
         const totalDistance = Math.round(entries.reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
         const totalAmount = Math.round(totalDistance * 2.5 * 100) / 100
+
+        // Category breakdown
+        const businessDistance = Math.round(entries.filter(e => e.category === "Tjänsteresa").reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
+        const businessAmount = Math.round(businessDistance * 2.5 * 100) / 100
+        const otherDistance = Math.round(entries.filter(e => e.category === "Övrigt").reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
+        const otherAmount = Math.round(otherDistance * 2.5 * 100) / 100
+
+        // Odometer range
+        const minOdometer = entries.length > 0 ? Math.min(...entries.map(e => e.startOdometer)) : 0
+        const maxOdometer = entries.length > 0 ? Math.max(...entries.map(e => e.endOdometer)) : 0
+
+        const finalY = (doc as any).lastAutoTable?.finalY ?? (data.cursor ? data.cursor.y + 10 : 40)
+
+        // Total
         doc.setFontSize(12)
         doc.setFont('helvetica', 'bold')
-        const finalY = (doc as any).lastAutoTable?.finalY ?? (data.cursor ? data.cursor.y + 10 : 40)
         doc.text(
           `Totalt: ${totalDistance} km    ${totalAmount.toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK`,
           14,
           finalY + 10
         )
+
+        // Summary section
+        doc.setFontSize(11)
+        doc.setFont('helvetica', 'bold')
+        doc.text("Sammanfattning:", 14, finalY + 20)
         doc.setFont('helvetica', 'normal')
+        doc.setFontSize(10)
+
+        // Category breakdown
+        doc.text(`Tjänsteresor: ${businessDistance} km (${businessAmount.toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK)`, 14, finalY + 28)
+        doc.text(`Övrigt: ${otherDistance} km (${otherAmount.toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK)`, 14, finalY + 35)
+
+        // Odometer range
+        doc.text(`Mätarställning från: ${minOdometer.toLocaleString("sv-SE")} km`, 14, finalY + 43)
+        doc.text(`Mätarställning till: ${maxOdometer.toLocaleString("sv-SE")} km`, 14, finalY + 50)
       }
     }
   })

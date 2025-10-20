@@ -69,26 +69,6 @@ export default function EditDrivePage() {
 
   useEffect(() => { setHasMounted(true) }, [])
 
-  // Auto-populate start odometer from latest reading
-  useEffect(() => {
-    if (selectedCarId && !entry) {
-      const latestReading = getLatestReadingForCar(selectedCarId)
-      if (latestReading) {
-        setStartOdometer(latestReading.odometer)
-      }
-    }
-  }, [selectedCarId, getLatestReadingForCar, entry])
-
-  // Auto-update end odometer based on distance
-  useEffect(() => {
-    if (calculatedDistance && calculatedDistance > 0 && startOdometer > 0) {
-      const dist = roundtrip
-        ? Math.round(calculatedDistance * 2 * 10) / 10
-        : Math.round(calculatedDistance * 10) / 10
-      setEndOdometer(startOdometer + dist)
-    }
-  }, [calculatedDistance, roundtrip, startOdometer])
-
   useEffect(() => {
     async function fetchDirections() {
       if (!fromAddress || !toAddress || !mapLoaded) {
@@ -250,38 +230,6 @@ export default function EditDrivePage() {
                         </p>
                       </div>
                     )}
-                  </div>
-                )}
-
-                {/* Odometer Fields */}
-                {selectedCarId && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="startOdometer" className="block text-sm font-medium mb-1">Start mätarställning (km)</label>
-                      <input
-                        type="number"
-                        id="startOdometer"
-                        name="startOdometer"
-                        className="form-input w-full"
-                        value={startOdometer}
-                        onChange={e => setStartOdometer(Number(e.target.value))}
-                        min="0"
-                        step="1"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="endOdometer" className="block text-sm font-medium mb-1">Slut mätarställning (km)</label>
-                      <input
-                        type="number"
-                        id="endOdometer"
-                        name="endOdometer"
-                        className="form-input w-full"
-                        value={endOdometer}
-                        onChange={e => setEndOdometer(Number(e.target.value))}
-                        min="0"
-                        step="1"
-                      />
-                    </div>
                   </div>
                 )}
 
