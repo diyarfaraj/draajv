@@ -20,7 +20,7 @@ export default function NewDrivePage() {
   const [toAddress, setToAddress] = useState("")
   const [roundtrip, setRoundtrip] = useState(false)
   const [purpose, setPurpose] = useState("")
-  const [vehicleType, setVehicleType] = useState("Privat bil")
+  const [vehicleType, setVehicleType] = useState("Tjänstebil")
   const [category, setCategory] = useState<"Tjänsteresa" | "Övrigt">("Tjänsteresa")
   const [selectedCarId, setSelectedCarId] = useState<string>("")
   const [startOdometer, setStartOdometer] = useState<number>(0)
