@@ -6,7 +6,8 @@
       "Bash(npx tsc --noEmit)",
       "Bash(npm run lint)",
       "Bash(npm install --save-dev @netlify/functions)",
-      "Bash(pnpm add -D @netlify/functions)"
+      "Bash(pnpm add -D @netlify/functions)",
+      "Bash(git add -A)"
     ],
     "deny": [],
     "ask": []
