@@ -73,4 +73,15 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer components {
+  .form-input,
+  .form-select {
+    @apply bg-white dark:bg-gray-800 border-border text-foreground;
+  }
+
+  .form-checkbox {
+    @apply border-border;
+  }
 } 
