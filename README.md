@@ -7,7 +7,7 @@ Keywords: gratis körjournal, milersättning, opensource, körjournal, milersät
 
 ![MIT License](https://img.shields.io/badge/license-MIT-green)
 
-En modern svensk körjournal för milersättning, export och bokföring. Byggd med Next.js, React, Tailwind, Zustand, Google Maps och PWA-stöd.
+En modern svensk körjournal för milersättning, export och bokföring. Byggd med Next.Js, React, Tailwind, Zustand, Google Maps och PWA-stöd.
 
 För persistence används endast chromes egna inbyggda localStorage API. Databasimplementering kan tillkomma senare. 
 
