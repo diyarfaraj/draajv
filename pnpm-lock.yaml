@@ -111,6 +111,9 @@ importers:
         specifier: ^4.5.1
         version: 4.5.7(@types/react@18.3.23)(react@18.3.1)
     devDependencies:
+      '@netlify/functions':
+        specifier: ^5.0.0
+        version: 5.0.0
       '@testing-library/react':
         specifier: ^14.2.1
         version: 14.3.1(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -939,6 +942,14 @@ packages:
 
   '@napi-rs/wasm-runtime@0.2.10':
     resolution: {integrity: sha512-bCsCyeZEwVErsGmyPNSzwfwFn4OdxBj0mmv6hOFucB/k81Ojdu68RbZdxYsRQUPc9l6SU5F/cG+bXgWs3oUgsQ==}
+
+  '@netlify/functions@5.0.0':
+    resolution: {integrity: sha512-gyKzl+P5SPp6P4iqykwPagSy7ODgRoQqi9TkjFJjM74FVJgxdiBQoLAmz+Pjl7kE5avJWtIvlQ+akAFaChekQQ==}
+    engines: {node: '>=18.0.0'}
+
+  '@netlify/types@2.1.0':
+    resolution: {integrity: sha512-ktUb5d58pt1lQGXO5E9S0F1ljM0g+CoQuGTVII0IxBc0apmPq5RI0o3OWLY7U3ZERRiYTg5UfjiMihBEzuZsuw==}
+    engines: {node: ^18.14.0 || >=20}
 
   '@next/env@14.2.3':
     resolution: {integrity: sha512-W7fd7IbkfmeeY2gXrzJYDx8D2lWKbVoTIj1o1ScPHNzvp30s1AuoEFSdr39bC5sjxJaxTtq3OTCZboNp0lNWHA==}
@@ -5432,6 +5443,12 @@ snapshots:
       '@emnapi/runtime': 1.4.3
       '@tybys/wasm-util': 0.9.0
     optional: true
+
+  '@netlify/functions@5.0.0':
+    dependencies:
+      '@netlify/types': 2.1.0
+
+  '@netlify/types@2.1.0': {}
 
   '@next/env@14.2.3': {}
 
