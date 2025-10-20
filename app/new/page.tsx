@@ -20,6 +20,7 @@ export default function NewDrivePage() {
   const [hasMounted, setHasMounted] = useState(false)
   const [calculatedDistance, setCalculatedDistance] = useState<number | null>(null)
   const [loadingDistance, setLoadingDistance] = useState(false)
+  const [distanceError, setDistanceError] = useState<string | null>(null)
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
 
@@ -60,7 +61,11 @@ export default function NewDrivePage() {
     async function handleCalculateDistance() {
       if (!fromAddress || !toAddress) return
       setLoadingDistance(true)
+      setDistanceError(null)
       const dist = await getDistanceInKm(fromAddress, toAddress)
+      if (dist === null) {
+        setDistanceError("Kunde inte beräkna avstånd. Kontrollera adresserna.")
+      }
       setCalculatedDistance(dist)
       setLoadingDistance(false)
     }
@@ -68,6 +73,7 @@ export default function NewDrivePage() {
       handleCalculateDistance()
     } else {
       setCalculatedDistance(null)
+      setDistanceError(null)
     }
   }, [fromAddress, toAddress])
 
@@ -176,6 +182,9 @@ export default function NewDrivePage() {
                     readOnly
                     placeholder={loadingDistance ? "Beräknar..." : ""}
                   />
+                  {distanceError && (
+                    <p className="text-sm text-red-600 mt-1">{distanceError}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="vehicleType" className="block text-sm font-medium mb-1">Fordonstyp</label>
