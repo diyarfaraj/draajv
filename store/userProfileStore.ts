@@ -10,12 +10,15 @@ export interface UserProfile {
   company: string
   ref: string
   purpose: string
+  defaultFromAddress?: string
+  defaultToAddress?: string
 }
 
 interface UserProfileState {
   profile: UserProfile
   setProfile: (profile: UserProfile) => void
   updateProfile: (profile: Partial<UserProfile>) => void
+  setDefaultAddresses: (fromAddress: string, toAddress: string) => void
 }
 
 const defaultProfile: UserProfile = {
@@ -35,6 +38,10 @@ export const useUserProfileStore = create<UserProfileState>()(
       profile: defaultProfile,
       setProfile: (profile) => set({ profile }),
       updateProfile: (profile) => set((state) => ({ profile: { ...state.profile, ...profile } })),
+      setDefaultAddresses: (fromAddress, toAddress) =>
+        set((state) => ({
+          profile: { ...state.profile, defaultFromAddress: fromAddress, defaultToAddress: toAddress },
+        })),
     }),
     { name: 'user-profile-storage' }
   )

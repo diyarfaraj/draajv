@@ -25,8 +25,8 @@ export function calculateDistance(start: number, end: number): number {
 }
 
 export function generateCsv(entries: DriveEntry[]): string {
-  // Skatteverkets format: Datum;Starttid;Sluttid;Start mätarställning;Stop mätarställning;Sträcka;Syfte;Ort
-  const header = "Datum;Starttid;Sluttid;Start mätarställning;Stop mätarställning;Sträcka;Syfte;Ort"
+  // Skatteverkets format: Datum;Starttid;Sluttid;Start mätarställning;Stop mätarställning;Sträcka;Kategori;Syfte;Ort
+  const header = "Datum;Starttid;Sluttid;Start mätarställning;Stop mätarställning;Sträcka;Kategori;Syfte;Ort"
   const rows = entries.map(e =>
     [
       e.date,
@@ -35,6 +35,7 @@ export function generateCsv(entries: DriveEntry[]): string {
       e.startOdometer,
       e.endOdometer,
       e.distance,
+      e.category || "Tjänsteresa",
       e.purpose.replace(/;/g, ","), // undvik semikolon i fält
       (e.location ?? "").replace(/;/g, ","),
     ].join(";")

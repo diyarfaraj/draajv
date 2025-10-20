@@ -2,12 +2,16 @@
 
 import React, { useState, useEffect } from "react"
 import { useDriveStore } from "@/store/driveStore"
+import { useCarStore } from "@/store/carStore"
+import { useOdometerStore } from "@/store/odometerStore"
+import { useUserProfileStore } from "@/store/userProfileStore"
 import { GoogleAddressAutocomplete } from "../_components/GoogleAddressAutocomplete"
 import { GoogleMap, DirectionsRenderer } from "@react-google-maps/api"
 import { getDistanceInKm } from "@/lib/getDistance"
 import { GoogleMapsLoader } from "../_components/GoogleMapsLoader"
 import { Button } from "../_components/ui/button"
 import { useRouter } from "next/navigation"
+import { FiInfo } from "react-icons/fi"
 
 export default function NewDrivePage() {
   const router = useRouter()
@@ -17,6 +21,10 @@ export default function NewDrivePage() {
   const [roundtrip, setRoundtrip] = useState(false)
   const [purpose, setPurpose] = useState("")
   const [vehicleType, setVehicleType] = useState("Privat bil")
+  const [category, setCategory] = useState<"Tjänsteresa" | "Övrigt">("Tjänsteresa")
+  const [selectedCarId, setSelectedCarId] = useState<string>("")
+  const [startOdometer, setStartOdometer] = useState<number>(0)
+  const [endOdometer, setEndOdometer] = useState<number>(0)
   const [hasMounted, setHasMounted] = useState(false)
   const [calculatedDistance, setCalculatedDistance] = useState<number | null>(null)
   const [loadingDistance, setLoadingDistance] = useState(false)
@@ -24,10 +32,51 @@ export default function NewDrivePage() {
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
 
-  // Store
+  // Stores
   const { addEntry } = useDriveStore()
+  const { cars, getDefaultCar } = useCarStore()
+  const { getLatestReadingForCar } = useOdometerStore()
+  const { profile, setDefaultAddresses } = useUserProfileStore()
+
+  // Set default car on mount
+  useEffect(() => {
+    const defaultCar = getDefaultCar()
+    if (defaultCar) {
+      setSelectedCarId(defaultCar.id)
+    }
+  }, [getDefaultCar])
+
+  // Initialize addresses from user profile defaults
+  useEffect(() => {
+    if (profile.defaultFromAddress) {
+      setFromAddress(profile.defaultFromAddress)
+    }
+    if (profile.defaultToAddress) {
+      setToAddress(profile.defaultToAddress)
+    }
+  }, [profile.defaultFromAddress, profile.defaultToAddress])
 
   useEffect(() => { setHasMounted(true) }, [])
+
+  // Auto-populate start odometer from latest reading
+  useEffect(() => {
+    if (selectedCarId) {
+      const latestReading = getLatestReadingForCar(selectedCarId)
+      if (latestReading) {
+        setStartOdometer(latestReading.odometer)
+      }
+    }
+  }, [selectedCarId, getLatestReadingForCar])
+
+  // Auto-update end odometer based on distance
+  useEffect(() => {
+    if (calculatedDistance && calculatedDistance > 0 && startOdometer > 0) {
+      const dist = roundtrip
+        ? Math.round(calculatedDistance * 2 * 10) / 10
+        : Math.round(calculatedDistance * 10) / 10
+      setEndOdometer(startOdometer + dist)
+    }
+  }, [calculatedDistance, roundtrip, startOdometer])
 
   useEffect(() => {
     async function fetchDirections() {
@@ -85,21 +134,31 @@ export default function NewDrivePage() {
       : Math.round(calculatedDistance * 10) / 10
     : 0
 
+  // Get selected car info
+  const selectedCar = cars.find(c => c.id === selectedCarId)
+  const latestReading = selectedCarId ? getLatestReadingForCar(selectedCarId) : null
+
   // Spara körning
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!date || !fromAddress || !toAddress || distance <= 0) return
+
+    // Save addresses as defaults for next time
+    setDefaultAddresses(fromAddress, toAddress)
+
     addEntry({
       date,
       startTime: new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }),
       endTime: new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }),
-      startOdometer: 0,
-      endOdometer: distance,
+      startOdometer: startOdometer,
+      endOdometer: endOdometer,
       fromAddress,
       toAddress,
       roundtrip,
       purpose,
       vehicleType,
+      category,
+      licensePlate: selectedCar?.licensePlate,
     })
     router.push("/")
   }
@@ -140,6 +199,66 @@ export default function NewDrivePage() {
                     onChange={e => setDate(e.target.value)}
                   />
                 </div>
+
+                {/* Car Selection */}
+                {cars.length > 0 && (
+                  <div>
+                    <label htmlFor="car" className="block text-sm font-medium mb-1">Bil</label>
+                    <select
+                      id="car"
+                      value={selectedCarId}
+                      onChange={e => setSelectedCarId(e.target.value)}
+                      className="form-select w-full"
+                    >
+                      <option value="">Ingen bil vald</option>
+                      {cars.map(car => (
+                        <option key={car.id} value={car.id}>
+                          {car.licensePlate} {car.make && `- ${car.make}`} {car.model && car.model}
+                        </option>
+                      ))}
+                    </select>
+                    {latestReading && (
+                      <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded flex items-start gap-2">
+                        <FiInfo className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                        <p className="text-xs text-blue-800 dark:text-blue-200">
+                          Senaste mätarställning: <strong>{latestReading.odometer} km</strong> ({latestReading.date})
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Odometer Fields */}
+                {selectedCarId && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="startOdometer" className="block text-sm font-medium mb-1">Start mätarställning (km)</label>
+                      <input
+                        type="number"
+                        id="startOdometer"
+                        name="startOdometer"
+                        className="form-input w-full"
+                        value={startOdometer}
+                        onChange={e => setStartOdometer(Number(e.target.value))}
+                        min="0"
+                        step="1"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="endOdometer" className="block text-sm font-medium mb-1">Slut mätarställning (km)</label>
+                      <input
+                        type="number"
+                        id="endOdometer"
+                        name="endOdometer"
+                        className="form-input w-full"
+                        value={endOdometer}
+                        onChange={e => setEndOdometer(Number(e.target.value))}
+                        min="0"
+                        step="1"
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="fromAddress" className="block text-sm font-medium mb-1">Från adress</label>
@@ -186,18 +305,33 @@ export default function NewDrivePage() {
                     <p className="text-sm text-red-600 mt-1">{distanceError}</p>
                   )}
                 </div>
-                <div>
-                  <label htmlFor="vehicleType" className="block text-sm font-medium mb-1">Fordonstyp</label>
-                  <select
-                    id="vehicleType"
-                    name="vehicleType"
-                    className="form-select w-full"
-                    value={vehicleType}
-                    onChange={e => setVehicleType(e.target.value)}
-                  >
-                    <option>Privat bil</option>
-                    <option>Tjänstebil</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="vehicleType" className="block text-sm font-medium mb-1">Fordonstyp</label>
+                    <select
+                      id="vehicleType"
+                      name="vehicleType"
+                      className="form-select w-full"
+                      value={vehicleType}
+                      onChange={e => setVehicleType(e.target.value)}
+                    >
+                      <option>Privat bil</option>
+                      <option>Tjänstebil</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="category" className="block text-sm font-medium mb-1">Kategori</label>
+                    <select
+                      id="category"
+                      name="category"
+                      className="form-select w-full"
+                      value={category}
+                      onChange={e => setCategory(e.target.value as "Tjänsteresa" | "Övrigt")}
+                    >
+                      <option value="Tjänsteresa">Tjänsteresa</option>
+                      <option value="Övrigt">Övrigt</option>
+                    </select>
+                  </div>
                 </div>
                 <div>
                   <label htmlFor="purpose" className="block text-sm font-medium mb-1">Syfte</label>
