@@ -37,7 +37,7 @@ export function DriveEntryList() {
   const [duplicateSource, setDuplicateSource] = useState<DriveEntry | null>(null)
 
   // Calculate totals
-  const totalDistance = entries.reduce((sum, e) => sum + (e.distance || 0), 0)
+  const totalDistance = Math.round(entries.reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
   const totalAmount = totalDistance * 2.5
 
   return (
@@ -206,7 +206,7 @@ function handleExportPdf() {
   doc.text(`Utbetalningskonto: ${profile.account || ""}`, 14, 76)
 
   // Right column: total, date, purpose, ref
-  const totalAmount = entries.reduce((sum, e) => sum + (e.distance || 0) * 2.5, 0)
+  const totalAmount = Math.round(entries.reduce((sum, e) => sum + (e.distance || 0) * 2.5, 0) * 100) / 100
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
   doc.text(`Totalt belopp: ${totalAmount.toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK`, 150, 44)
@@ -236,8 +236,8 @@ function handleExportPdf() {
     didDrawPage: (data) => {
       // Add summary row at the end
       if (data.pageNumber === (doc.internal as any).getNumberOfPages()) {
-        const totalDistance = entries.reduce((sum, e) => sum + (e.distance || 0), 0)
-        const totalAmount = totalDistance * 2.5
+        const totalDistance = Math.round(entries.reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
+        const totalAmount = Math.round(totalDistance * 2.5 * 100) / 100
         doc.setFontSize(12)
         doc.setFont('helvetica', 'bold')
         const finalY = (doc as any).lastAutoTable?.finalY ?? (data.cursor ? data.cursor.y + 10 : 40)
