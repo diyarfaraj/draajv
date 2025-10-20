@@ -192,7 +192,7 @@ export function DriveEntryList() {
           <form onSubmit={e => {
             e.preventDefault()
             if (!duplicateSource || !duplicateDate) return
-            const { id, createdAt, ...rest } = duplicateSource
+            const { id, createdAt, distance, ...rest } = duplicateSource
             addEntry({
               ...rest,
               date: duplicateDate,
