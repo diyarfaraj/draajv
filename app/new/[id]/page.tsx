@@ -12,39 +12,36 @@ import { Button } from "../../_components/ui/button"
 export default function EditDrivePage() {
   const router = useRouter()
   const params = useParams()
-  if (!params || !('id' in params)) {
-    return (
-      <main className="container mx-auto p-8">
-        <h2 className="text-2xl font-semibold mb-4">Körning hittades inte</h2>
-        <Button onClick={() => router.push("/")}>Tillbaka</Button>
-      </main>
-    )
-  }
-  const id = typeof params.id === "string" ? params.id : Array.isArray(params.id) ? params.id[0] : ""
   const { getEntryById, updateEntry } = useDriveStore()
-  const entry = getEntryById(id)
 
-  if (!entry) {
-    return (
-      <main className="container mx-auto p-8">
-        <h2 className="text-2xl font-semibold mb-4">Körning hittades inte</h2>
-        <Button onClick={() => router.push("/")}>Tillbaka</Button>
-      </main>
-    )
-  }
-
-  // State for form fields
-  const [date, setDate] = useState(entry.date)
-  const [fromAddress, setFromAddress] = useState(entry.fromAddress || entry.location || "")
-  const [toAddress, setToAddress] = useState(entry.toAddress || entry.location || "")
-  const [roundtrip, setRoundtrip] = useState(entry.roundtrip)
-  const [purpose, setPurpose] = useState(entry.purpose)
-  const [vehicleType, setVehicleType] = useState(entry.vehicleType)
+  // State for form fields - initialize with defaults
+  const [date, setDate] = useState("")
+  const [fromAddress, setFromAddress] = useState("")
+  const [toAddress, setToAddress] = useState("")
+  const [roundtrip, setRoundtrip] = useState(false)
+  const [purpose, setPurpose] = useState("")
+  const [vehicleType, setVehicleType] = useState("Privat bil")
   const [hasMounted, setHasMounted] = useState(false)
   const [calculatedDistance, setCalculatedDistance] = useState<number | null>(null)
   const [loadingDistance, setLoadingDistance] = useState(false)
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
+
+  // Get the ID and entry
+  const id = params && 'id' in params ? (typeof params.id === "string" ? params.id : Array.isArray(params.id) ? params.id[0] : "") : ""
+  const entry = id ? getEntryById(id) : undefined
+
+  // Initialize form fields from entry
+  useEffect(() => {
+    if (entry) {
+      setDate(entry.date)
+      setFromAddress(entry.fromAddress || entry.location || "")
+      setToAddress(entry.toAddress || entry.location || "")
+      setRoundtrip(entry.roundtrip)
+      setPurpose(entry.purpose)
+      setVehicleType(entry.vehicleType)
+    }
+  }, [entry])
 
   useEffect(() => { setHasMounted(true) }, [])
 
@@ -90,6 +87,25 @@ export default function EditDrivePage() {
       setCalculatedDistance(null)
     }
   }, [fromAddress, toAddress])
+
+  // Check for invalid params or missing entry
+  if (!params || !('id' in params) || !id) {
+    return (
+      <main className="container mx-auto p-8">
+        <h2 className="text-2xl font-semibold mb-4">Körning hittades inte</h2>
+        <Button onClick={() => router.push("/")}>Tillbaka</Button>
+      </main>
+    )
+  }
+
+  if (!entry) {
+    return (
+      <main className="container mx-auto p-8">
+        <h2 className="text-2xl font-semibold mb-4">Körning hittades inte</h2>
+        <Button onClick={() => router.push("/")}>Tillbaka</Button>
+      </main>
+    )
+  }
 
   if (!hasMounted) return null
 
