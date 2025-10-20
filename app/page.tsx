@@ -9,7 +9,7 @@ import { CarRegistry } from "./_components/CarRegistry"
 import { Button } from "./_components/ui/button"
 import { useRouter } from "next/navigation"
 import { Header } from "./_components/Header"
-import { FiActivity } from "react-icons/fi"
+import { FiActivity, FiTruck } from "react-icons/fi"
 
 export default function HomePage() {
   const router = useRouter()
