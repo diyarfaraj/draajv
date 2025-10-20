@@ -49,12 +49,13 @@ The app uses **Zustand** for state management with **localForage** for IndexedDB
    - Includes migration logic for legacy `location` field to `fromAddress`/`toAddress`
    - Tracks rehydration state with `isInitialized` flag
    - Entries are sorted by `createdAt` descending (newest first)
+   - **SSR/Build Safe**: Uses conditional checks (`typeof window !== 'undefined'`) to prevent localForage initialization during server-side rendering or static builds
 
 2. **userProfileStore** (`store/userProfileStore.ts`) - User/company profile information
    - Persists to localStorage via Zustand's default storage (key: `user-profile-storage`)
    - Used for PDF export headers (name, company, employee ID, account, etc.)
 
-**Important**: Always check `isInitialized` before rendering drive data to avoid hydration mismatches between server and client.
+**Important**: Always check `isInitialized` before rendering drive data to avoid hydration mismatches between server and client. The stores use browser-only storage and will not persist data during SSR or build time.
 
 ### Data Models
 
