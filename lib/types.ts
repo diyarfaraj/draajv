@@ -13,6 +13,7 @@ export interface DriveEntry {
   distance: number; // Automatically calculated
   purpose: string;
   vehicleType: string;
+  category: "Tjänsteresa" | "Övrigt"; // Business or Other
   licensePlate?: string; // Optional link to car
   createdAt: string; // ISO string for timestamp
 }

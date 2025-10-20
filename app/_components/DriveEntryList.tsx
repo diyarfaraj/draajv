@@ -63,6 +63,7 @@ export function DriveEntryList() {
               <tr>
                 <th className="px-2 py-2 md:px-3 font-semibold text-left whitespace-nowrap">Datum</th>
                 <th className="px-2 py-2 md:px-3 font-semibold text-left whitespace-nowrap">Resmål</th>
+                <th className="px-2 py-2 md:px-3 font-semibold text-left whitespace-nowrap">Kategori</th>
                 <th className="px-2 py-2 md:px-3 font-semibold text-left whitespace-nowrap">Beskrivning</th>
                 <th className="px-2 py-2 md:px-3 font-semibold text-right whitespace-nowrap">Antal</th>
                 <th className="px-2 py-2 md:px-3 font-semibold text-right whitespace-nowrap">Belopp</th>
@@ -86,6 +87,15 @@ export function DriveEntryList() {
                     {entry.roundtrip && (
                       <div className="italic text-xs text-blue-600">Tur och retur</div>
                     )}
+                  </td>
+                  <td className="px-2 py-2 md:px-3 align-top">
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                      entry.category === "Tjänsteresa"
+                        ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                    }`}>
+                      {entry.category || "Tjänsteresa"}
+                    </span>
                   </td>
                   <td className="px-2 py-2 md:px-3 align-top text-xs md:text-sm">{entry.purpose}</td>
                   <td className="px-2 py-2 md:px-3 text-right align-top text-xs md:text-sm">{entry.distance} km</td>
@@ -221,12 +231,13 @@ function handleExportPdf() {
   const tableData = entries.map(e => [
     e.date,
     `${e.fromAddress || e.location} - ${e.toAddress || e.location}${e.roundtrip ? ' (tur och retur)' : ''}`,
+    e.category || "Tjänsteresa",
     e.purpose,
     `${e.distance} km`,
     `${(e.distance * 2.5).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SEK`
   ])
   autoTable(doc, {
-    head: [["Datum", "Resmål", "Beskrivning", "Antal", "Belopp"]],
+    head: [["Datum", "Resmål", "Kategori", "Beskrivning", "Antal", "Belopp"]],
     body: tableData,
     startY: 90,
     styles: { font: "helvetica", fontSize: 10 },
