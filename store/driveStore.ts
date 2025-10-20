@@ -5,12 +5,14 @@ import { DriveEntry, DriveFormValues } from '@/lib/types';
 import { calculateDistance } from '@/lib/utils';
 import { v4 as uuidv4 } from 'uuid'; // Assuming uuid is installed, or use crypto.randomUUID
 
-// Configure localForage if needed (e.g., custom store name)
-localForage.config({
-  name: 'KorjournalApp',
-  storeName: 'drive_entries',
-  description: 'Lagring för körjournaldata',
-});
+// Configure localForage only in browser environment
+if (typeof window !== 'undefined') {
+  localForage.config({
+    name: 'KorjournalApp',
+    storeName: 'drive_entries',
+    description: 'Lagring för körjournaldata',
+  });
+}
 
 interface DriveState {
   entries: DriveEntry[];
@@ -71,7 +73,13 @@ export const useDriveStore = create<DriveState>()(
     driveStoreCreator,
     {
       name: 'drive-entries-storage', // name of the item in storage
-      storage: createJSONStorage(() => localForage), // use localForage
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined' ? localForage : {
+          getItem: async () => null,
+          setItem: async () => {},
+          removeItem: async () => {},
+        }
+      ),
       onRehydrateStorage: () => (state?: DriveState) => {
         if (state) state.setInitialized(true);
       },
@@ -81,4 +89,6 @@ export const useDriveStore = create<DriveState>()(
 
 // Eagerly initialize the store by calling a method or accessing a property
 // This helps kick off the rehydration process from localForage
-useDriveStore.getState().setInitialized(false); // Initial call to ensure hydration starts 
+if (typeof window !== 'undefined') {
+  useDriveStore.getState().setInitialized(false); // Initial call to ensure hydration starts
+} 
