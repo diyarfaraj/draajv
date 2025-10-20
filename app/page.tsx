@@ -8,8 +8,8 @@ import { OdometerReadingForm } from "./_components/OdometerReadingForm"
 import { CarRegistry } from "./_components/CarRegistry"
 import { Button } from "./_components/ui/button"
 import { useRouter } from "next/navigation"
-import { ThemeToggle } from "./_components/ThemeToggle"
-import { FiActivity, FiTruck } from "react-icons/fi"
+import { Header } from "./_components/Header"
+import { FiActivity } from "react-icons/fi"
 
 export default function HomePage() {
   const router = useRouter()
@@ -20,22 +20,10 @@ export default function HomePage() {
     <GoogleMapsLoader>
       <main className="container mx-auto p-4">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">Körjournal</h1>
-            <div className="flex gap-2 items-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCarRegistryOpen(true)}
-                className="hidden sm:flex gap-2"
-              >
-                <FiTruck className="w-4 h-4" />
-                <span>Mina bilar</span>
-              </Button>
-              <ThemeToggle />
-            </div>
-          </div>
+          <Header
+            showCarRegistryButton
+            onCarRegistryClick={() => setCarRegistryOpen(true)}
+          />
 
           {/* Two-Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
