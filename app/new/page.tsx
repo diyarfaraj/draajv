@@ -11,6 +11,7 @@ import { getDistanceInKm } from "@/lib/getDistance"
 import { GoogleMapsLoader } from "../_components/GoogleMapsLoader"
 import { Button } from "../_components/ui/button"
 import { useRouter } from "next/navigation"
+import { Header } from "../_components/Header"
 import { FiInfo } from "react-icons/fi"
 
 export default function NewDrivePage() {
@@ -147,6 +148,13 @@ export default function NewDrivePage() {
     <GoogleMapsLoader>
       <main className="min-h-screen w-full bg-background text-foreground">
         <div className="container mx-auto py-8">
+          <div className="max-w-7xl mx-auto">
+            <Header
+              title="Ny körning"
+              showBackButton
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Vänster kolumn: Karta */}
             <section className="w-full h-[350px] md:h-[600px] flex flex-col">
@@ -165,7 +173,6 @@ export default function NewDrivePage() {
 
             {/* Höger kolumn: Formulär */}
             <section className="w-full flex flex-col">
-              <h2 className="text-2xl font-semibold mb-4">Ny körning</h2>
               <form className="space-y-4" onSubmit={handleSubmit} autoComplete="off">
                 <div>
                   <label htmlFor="date" className="block text-sm font-medium mb-1">Datum *</label>
