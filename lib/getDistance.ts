@@ -1,6 +1,15 @@
 export async function getDistanceInKm(origin: string, destination: string): Promise<number | null> {
   try {
-    const url = `/api/distance?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+    if (!apiKey) {
+      console.error("Google Maps API key is not configured");
+      return null;
+    }
+
+    // Call Google Distance Matrix API directly from client
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&key=${apiKey}&language=sv`;
+
     const res = await fetch(url);
 
     if (!res.ok) {
