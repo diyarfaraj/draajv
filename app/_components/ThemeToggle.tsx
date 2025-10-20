@@ -10,7 +10,11 @@ export function ThemeToggle() {
   )
 
   useEffect(() => {
-    document.documentElement.classList.toggle("light", theme === "light")
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+    }
     localStorage.setItem("theme", theme)
   }, [theme])
 
