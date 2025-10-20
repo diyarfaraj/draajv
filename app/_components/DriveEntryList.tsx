@@ -40,15 +40,16 @@ export function DriveEntryList() {
   const totalDistance = Math.round(entries.reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
   const totalAmount = totalDistance * 2.5
 
-  // Calculate category-based totals
-  const businessDistance = Math.round(entries.filter(e => e.category === "Tjänsteresa").reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
+  // Calculate category-based totals (treat undefined category as "Tjänsteresa" for backwards compatibility)
+  const businessDistance = Math.round(entries.filter(e => !e.category || e.category === "Tjänsteresa").reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
   const businessAmount = Math.round(businessDistance * 2.5 * 100) / 100
   const otherDistance = Math.round(entries.filter(e => e.category === "Övrigt").reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
   const otherAmount = Math.round(otherDistance * 2.5 * 100) / 100
 
-  // Calculate odometer range from entries
-  const minOdometer = entries.length > 0 ? Math.min(...entries.map(e => e.startOdometer)) : 0
-  const maxOdometer = entries.length > 0 ? Math.max(...entries.map(e => e.endOdometer)) : 0
+  // Calculate odometer range from entries (filter out entries with invalid odometer values)
+  const validOdometerEntries = entries.filter(e => e.startOdometer > 0 && e.endOdometer > 0)
+  const minOdometer = validOdometerEntries.length > 0 ? Math.min(...validOdometerEntries.map(e => e.startOdometer)) : 0
+  const maxOdometer = validOdometerEntries.length > 0 ? Math.max(...validOdometerEntries.map(e => e.endOdometer)) : 0
 
   return (
     <div className="mt-8">
@@ -290,15 +291,16 @@ function handleExportPdf() {
         const totalDistance = Math.round(entries.reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
         const totalAmount = Math.round(totalDistance * 2.5 * 100) / 100
 
-        // Category breakdown
-        const businessDistance = Math.round(entries.filter(e => e.category === "Tjänsteresa").reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
+        // Category breakdown (treat undefined category as "Tjänsteresa" for backwards compatibility)
+        const businessDistance = Math.round(entries.filter(e => !e.category || e.category === "Tjänsteresa").reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
         const businessAmount = Math.round(businessDistance * 2.5 * 100) / 100
         const otherDistance = Math.round(entries.filter(e => e.category === "Övrigt").reduce((sum, e) => sum + (e.distance || 0), 0) * 10) / 10
         const otherAmount = Math.round(otherDistance * 2.5 * 100) / 100
 
-        // Odometer range
-        const minOdometer = entries.length > 0 ? Math.min(...entries.map(e => e.startOdometer)) : 0
-        const maxOdometer = entries.length > 0 ? Math.max(...entries.map(e => e.endOdometer)) : 0
+        // Odometer range (filter out entries with invalid odometer values)
+        const validOdometerEntries = entries.filter(e => e.startOdometer > 0 && e.endOdometer > 0)
+        const minOdometer = validOdometerEntries.length > 0 ? Math.min(...validOdometerEntries.map(e => e.startOdometer)) : 0
+        const maxOdometer = validOdometerEntries.length > 0 ? Math.max(...validOdometerEntries.map(e => e.endOdometer)) : 0
 
         const finalY = (doc as any).lastAutoTable?.finalY ?? (data.cursor ? data.cursor.y + 10 : 40)
 
