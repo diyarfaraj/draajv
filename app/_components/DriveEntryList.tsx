@@ -47,7 +47,10 @@ export function DriveEntryList() {
   const otherAmount = Math.round(otherDistance * 2.5 * 100) / 100
 
   // Calculate odometer range from entries (filter out entries with invalid odometer values)
-  const validOdometerEntries = entries.filter(e => e.startOdometer > 0 && e.endOdometer > 0)
+  const validOdometerEntries = entries.filter(e =>
+    e.startOdometer != null && e.endOdometer != null &&
+    !isNaN(e.startOdometer) && !isNaN(e.endOdometer)
+  )
   const minOdometer = validOdometerEntries.length > 0 ? Math.min(...validOdometerEntries.map(e => e.startOdometer)) : 0
   const maxOdometer = validOdometerEntries.length > 0 ? Math.max(...validOdometerEntries.map(e => e.endOdometer)) : 0
 
@@ -298,7 +301,10 @@ function handleExportPdf() {
         const otherAmount = Math.round(otherDistance * 2.5 * 100) / 100
 
         // Odometer range (filter out entries with invalid odometer values)
-        const validOdometerEntries = entries.filter(e => e.startOdometer > 0 && e.endOdometer > 0)
+        const validOdometerEntries = entries.filter(e =>
+          e.startOdometer != null && e.endOdometer != null &&
+          !isNaN(e.startOdometer) && !isNaN(e.endOdometer)
+        )
         const minOdometer = validOdometerEntries.length > 0 ? Math.min(...validOdometerEntries.map(e => e.startOdometer)) : 0
         const maxOdometer = validOdometerEntries.length > 0 ? Math.max(...validOdometerEntries.map(e => e.endOdometer)) : 0
 
